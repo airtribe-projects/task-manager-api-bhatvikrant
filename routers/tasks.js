@@ -16,10 +16,23 @@ router.get("/", (req, res) => {
 
 	// Sort by creation date if sort=date query param exists
 	if (sort === "date") {
-		console.log("sorting by date");
 		result.sort((a, b) => b.id - a.id); // Since id increments with creation, we can use it as creation date
 	}
 
+	res.json(result);
+});
+
+router.get("/priority/:level", (req, res) => {
+	const validPriorities = ["low", "medium", "high"];
+	const level = req.params.level.toLowerCase();
+
+	if (!validPriorities.includes(level)) {
+		return res.status(400).json({
+			message: "Invalid priority level. Must be low, medium, or high",
+		});
+	}
+
+	const result = tasks.filter(task => task.priority === level);
 	res.json(result);
 });
 
@@ -32,7 +45,7 @@ router.get("/:id", (req, res) => {
 });
 
 router.post("/", (req, res) => {
-	const { title, description, completed } = req.body;
+	const { title, description, completed, priority } = req.body;
 
 	// Validate required fields
 	if (!title || !description) {
@@ -55,11 +68,22 @@ router.post("/", (req, res) => {
 			.json({ message: "Completed must be a boolean value" });
 	}
 
+	// Validate priority
+	if (
+		!priority ||
+		!["low", "medium", "high"].includes(priority.toLowerCase())
+	) {
+		return res
+			.status(400)
+			.json({ message: "Priority must be low, medium, or high" });
+	}
+
 	const task = {
 		id: tasks.length + 1,
 		title: title.trim(),
 		description: description.trim(),
 		completed,
+		priority: priority.toLowerCase(),
 	};
 
 	tasks.push(task);
@@ -73,7 +97,7 @@ router.put("/:id", (req, res) => {
 		return res.status(404).json({ message: "Task not found" });
 	}
 
-	const { title, description, completed } = req.body;
+	const { title, description, completed, priority } = req.body;
 
 	// Validate required fields
 	if (!title || !description) {
@@ -96,9 +120,20 @@ router.put("/:id", (req, res) => {
 			.json({ message: "Completed must be a boolean value" });
 	}
 
+	// Validate priority
+	if (
+		!priority ||
+		!["low", "medium", "high"].includes(priority.toLowerCase())
+	) {
+		return res
+			.status(400)
+			.json({ message: "Priority must be low, medium, or high" });
+	}
+
 	task.title = title.trim();
 	task.description = description.trim();
 	task.completed = completed;
+	task.priority = priority.toLowerCase();
 
 	res.json(task);
 });
