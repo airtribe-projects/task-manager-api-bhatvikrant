@@ -4,17 +4,23 @@ const router = express.Router();
 let tasks = [];
 
 router.get("/", (req, res) => {
-	const { completed } = req.query;
+	const { completed, sort } = req.query;
+	let result = [...tasks];
 
 	// If completed query param exists, filter tasks by completion status
 	if (completed !== undefined) {
 		// Convert string query param to boolean
 		const isCompleted = completed === "true";
-		const filteredTasks = tasks.filter(task => task.completed === isCompleted);
-		return res.json(filteredTasks);
+		result = result.filter(task => task.completed === isCompleted);
 	}
 
-	res.json(tasks);
+	// Sort by creation date if sort=date query param exists
+	if (sort === "date") {
+		console.log("sorting by date");
+		result.sort((a, b) => b.id - a.id); // Since id increments with creation, we can use it as creation date
+	}
+
+	res.json(result);
 });
 
 router.get("/:id", (req, res) => {
