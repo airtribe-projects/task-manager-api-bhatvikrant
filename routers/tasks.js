@@ -4,6 +4,16 @@ const router = express.Router();
 let tasks = [];
 
 router.get("/", (req, res) => {
+	const { completed } = req.query;
+
+	// If completed query param exists, filter tasks by completion status
+	if (completed !== undefined) {
+		// Convert string query param to boolean
+		const isCompleted = completed === "true";
+		const filteredTasks = tasks.filter(task => task.completed === isCompleted);
+		return res.json(filteredTasks);
+	}
+
 	res.json(tasks);
 });
 
